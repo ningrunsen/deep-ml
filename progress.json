@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T17:02:59.490Z",
+  "generated_at": "2026-10-17T17:03:02.533Z",
   "items": {
     "math:41": {
       "kind": "math",
@@ -10,7 +10,7 @@
       "url": "https://www.deep-ml.com/math-problems/41",
       "path": "math/0041-the-em-algorithm",
       "first_solved_at": "2026-10-17T17:02:54.328Z",
-      "last_pushed_at": "2026-10-17T17:02:54.328Z"
+      "last_pushed_at": "2026-10-17T17:03:01.319Z"
     }
   }
 }
