@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T19:11:07.556Z",
+  "generated_at": "2026-11-10T00:24:47.774Z",
   "items": {
     "math:41": {
       "kind": "math",
@@ -44,6 +44,19 @@
       "path": "math/0029-probabilistic-models",
       "first_solved_at": "2026-10-17T19:11:06.029Z",
       "last_pushed_at": "2026-10-17T19:11:06.029Z"
+    },
+    "lab:27": {
+      "kind": "lab",
+      "id": "27",
+      "title": "Combine Trained Models into an Ensemble",
+      "difficulty": "medium",
+      "category": "Ensembles",
+      "url": "https://www.deep-ml.com/labs/27",
+      "path": "labs/0027-combine-trained-models-into-an-ensemble",
+      "first_solved_at": "2026-11-10T00:24:20.317Z",
+      "last_pushed_at": "2026-11-10T00:24:20.317Z",
+      "language": "python",
+      "lines": 90
     }
   }
 }
