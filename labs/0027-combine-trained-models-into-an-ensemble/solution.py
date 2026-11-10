@@ -1,90 +1,131 @@
 # --- cell 1 ---
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+# You can import any sklearn module you need
 
 
 def train_ensemble(base_models, X_val, y_val):
+    """
+    Combine K pre-trained base classifiers into an ensemble that predicts class
+    labels on new data.
 
-    def _predict_hv(X):
-        predictions = np.array([
-            m.predict(X) for m in base_models
-        ])
+    The harness has already trained the base models on a separate training set.
+    You DO NOT retrain them. Instead, use their predictions on (X_val, y_val) to
+    figure out how to combine them, then return a `predict` callable that the
+    harness will apply to held-out test data.
 
-        return np.apply_along_axis(
-            lambda x: np.argmax(np.bincount(x)),
-            axis=0,
-            arr=predictions
-        )
+    Args:
+        base_models: list of K trained sklearn-style classifiers. Each has:
+            - .predict(X) -> np.ndarray of integer class labels, shape (n,)
+            - .predict_proba(X) -> np.ndarray of shape (n, n_classes)
+        X_val: numpy array of shape (n_val, n_features) -- standardized
+        y_val: numpy array of shape (n_val,) -- integer class labels
 
-    def _get_proba(X):
-        return np.array([
-            m.predict_proba(X) for m in base_models
-        ])
+    Returns:
+        predict: callable taking X (n, n_features) and returning a numpy array
+                 of integer class labels, shape (n,)
+    """
+    # TODO: design a combiner. Some options to consider:
+    #   * Hard voting:     majority of base_models[k].predict(X) across k
+    #   * Soft voting:     argmax of mean predict_proba across base models
+    #   * Weighted voting: weight each model by its validation accuracy
+    #   * Stacking:        train a meta-model on base predict_proba outputs
+    # The win threshold is set so that naive voting strategies will not pass.
+    # def _best_voter(models,X,y):
+        # best_acc = 0
+        # best_voter = None
+        # 
+        # accuracy_hv = _eval_hv(X,y,models)
+        # accuracy_sv = _eval_sv(X,y,models)
+        # accuracy_wv = _eval_wv(X,y,models)
+        # accuracy_stacking = _eval_stacking(X,y,models)
+        # 
+        # acc = {
+        # 'hv':accuracy_hv,
+        # 'sv':accuracy_sv,
+        # 'wv':accuracy_wv,
+        # 'stacking':accuracy_stacking
+        # }
+        # for voter,accuracy in acc.items():
+            # if accuracy>best_acc:
+                # best_acc=accuracy
+                # best_voter=voter     
+        # return best_voter
+    # def _eval_hv(X,y,models):
+        # prediction = _predict_hv(models,X)
+        # accuracy = _calc_acc(y,prediction)
+        # return accuracy
+    # def _eval_sv(X,y,models):
+        # prediction = _predict_sv(models,X)
+        # accuracy = _calc_acc(y,prediction)
+        # return accuracy
+    # def _eval_wv(X,y,models):
+        # prediction = _predict_wv(models,X,y)
+        # accuracy = _calc_acc(y,prediction)
+        # return accuracy
+    # def _eval_stacking(X,y,models):
+        # prediction = _predict_stacking(models,X)
+        # accuracy = _calc_acc(y,prediction)
+        # return accuracy
+    # def _predict_hv(models,X):
+        # predictions =[]
+        # for m in models:
+            # prediction = m.predict(X)
+            # predictions.append(prediction)
+        # predictions=np.array(predictions)
+        # return np.apply_along_axis(lambda x: np.argmax(np.bincount(x)),arr=predictions,axis=0)
+    # def _predict_sv(models,X):
+        # predictions =[]
+        # for m in models:
+            # prediction = m.predict_proba(X)
+            # predictions.append(prediction)
+        # predictions=np.array(predictions)
+        # return np.argmax(np.mean(predictions,axis=0),axis=1)
+    # def _predict_wv(models,X,y):
+        # predictions=[]
+        # accuracys=[]
+        # for m in models:
+            # prediction = m.predict_proba(X)
+            # predictions.append(prediction)
+            # accuracy= _calc_acc(y,np.argmax(prediction, axis=1))
+            # accuracys.append(accuracy)
+        # predictions=np.array(predictions)
+        # accuracys=np.array(accuracys)
+        # weights = accuracys/np.sum(accuracys)
+        # predictions *= weights[:,None,None]
+        # predictions = np.argmax(np.sum(predictions,axis=0),axis=1)
+        # return predictions
+    from sklearn.linear_model import LogisticRegression
+    X_meta =[]
+  
+    for m in base_models:
+        prediction = m.predict_proba(X_val)
+        X_meta.append(prediction)
+    X_meta =np.concatenate(X_meta,axis=1)
+    meta_model = LogisticRegression()
+    meta_model.fit(X_meta,y_val)
+    
+   
 
-    def _predict_sv(X):
-        predictions = _get_proba(X)
-        return np.argmax(np.mean(predictions, axis=0), axis=1)
-
-    # Split validation data into fitting and selection sets
-    X_fit, X_select, y_fit, y_select = train_test_split(
-        X_val, y_val,
-        test_size=0.3,
-        random_state=42,
-        stratify=y_val
-    )
-
-    # Learn weighted-voting weights
-    accuracies = np.array([
-        accuracy_score(y_fit, m.predict(X_fit))
-        for m in base_models
-    ])
-
-    if accuracies.sum() == 0:
-        weights = np.ones(len(base_models)) / len(base_models)
-    else:
-        weights = accuracies / accuracies.sum()
-
-    def _predict_wv(X):
-        predictions = _get_proba(X)
-        weighted = predictions * weights[:, None, None]
-
-        return np.argmax(np.sum(weighted, axis=0), axis=1)
-
-    # Train stacking meta-model
-    X_meta = np.concatenate([
-        m.predict_proba(X_fit)
-        for m in base_models
-    ], axis=1)
-
-    meta_model = LogisticRegression(max_iter=1000)
-    meta_model.fit(X_meta, y_fit)
-
-    def _predict_stacking(X):
-        X_meta = np.concatenate([
-            m.predict_proba(X)
-            for m in base_models
-        ], axis=1)
-
-        return meta_model.predict(X_meta)
-
-    # Evaluate on data not used to fit the combiner
-    voters = {
-        "hv": _predict_hv,
-        "sv": _predict_sv,
-        "wv": _predict_wv,
-        "stacking": _predict_stacking
-    }
-
-    accuracies = {
-        name: accuracy_score(y_select, fn(X_select))
-        for name, fn in voters.items()
-    }
-
-    best_voter = max(accuracies, key=accuracies.get)
-
+        
+        
+        
+        
+            
+    
+        
+            
+    
     def predict(X):
-        return voters[best_voter](X)
+        # TODO: compute and return integer class predictions for X
+        X_meta =[]
+        for m in base_models:
+            X_meta.append(m.predict_proba(X))
+        
+        X_meta=np.concatenate(X_meta,axis=1)
+        return meta_model.predict(X_meta)
+        
+        # return _predict_sv(base_models,X)
+        
+        # raise NotImplementedError
 
     return predict

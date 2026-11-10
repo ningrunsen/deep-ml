@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T00:24:47.774Z",
+  "generated_at": "2026-11-10T00:37:45.258Z",
   "items": {
     "math:41": {
       "kind": "math",
@@ -54,9 +54,9 @@
       "url": "https://www.deep-ml.com/labs/27",
       "path": "labs/0027-combine-trained-models-into-an-ensemble",
       "first_solved_at": "2026-11-10T00:24:20.317Z",
-      "last_pushed_at": "2026-11-10T00:24:20.317Z",
+      "last_pushed_at": "2026-11-10T00:37:18.466Z",
       "language": "python",
-      "lines": 90
+      "lines": 131
     }
   }
 }
